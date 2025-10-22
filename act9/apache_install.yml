@@ -1,0 +1,34 @@
+---
+- name: Instalar y verificar servidor web Apache en Ubuntu
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Actualizar los paquetes del sistema
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Instalar Apache2
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+
+    - name: Habilitar e iniciar el servicio Apache
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Verificar que el servicio Apache esté activo
+      ansible.builtin.shell: systemctl is-active apache2
+      register: apache_status
+      changed_when: false
+
+    - name: Mostrar el estado del servicio Apache
+      ansible.builtin.debug:
+        msg: "Estado del servicio Apache: {{ apache_status.stdout }}"
+
+    - name: Verificar acceso HTTP en el puerto 80
+      ansible.builtin.uri:
+        url: http://localhost
+        status_code: 200
